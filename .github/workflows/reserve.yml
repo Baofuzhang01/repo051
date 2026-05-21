@@ -168,11 +168,18 @@ jobs:
           echo "Feishu response code: ${status_code}"
           cat /tmp/feishu_resp.txt || true
 
-      - name: Mark reserve result failed (dispatch)
+      - name: Note reserve script status (dispatch)
         if: ${{ always() && steps.run_reserve.outputs.return_code != '' && steps.run_reserve.outputs.return_code != '0' }}
         run: |
-          echo "Reserve script failed with exit code ${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve.outputs.return_code }}}"
-          exit "${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve.outputs.return_code }}}"
+          code="${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve.outputs.return_code }}}"
+          echo "Reserve script finished with non-zero exit code ${code}; result reporting and log upload have already run."
+          {
+            echo "### 抢座程序状态"
+            echo
+            echo "main.py 返回码：${code}"
+            echo
+            echo "结果中心上报、关键日志和飞书通知步骤已继续执行。"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   forward-dispatch:
     name: forward-dispatch-to-server
@@ -374,8 +381,15 @@ jobs:
           echo "Feishu response code: ${status_code}"
           cat /tmp/feishu_resp.txt || true
 
-      - name: Mark reserve result failed (manual)
+      - name: Note reserve script status (manual)
         if: ${{ always() && github.event.inputs.test_feishu_only != 'true' && steps.run_reserve_manual.outputs.return_code != '' && steps.run_reserve_manual.outputs.return_code != '0' }}
         run: |
-          echo "Reserve script failed with exit code ${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve_manual.outputs.return_code }}}"
-          exit "${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve_manual.outputs.return_code }}}"
+          code="${RESERVE_ACTION_RETURN_CODE:-${{ steps.run_reserve_manual.outputs.return_code }}}"
+          echo "Reserve script finished with non-zero exit code ${code}; result reporting and log upload have already run."
+          {
+            echo "### 抢座程序状态"
+            echo
+            echo "main.py 返回码：${code}"
+            echo
+            echo "结果中心上报、关键日志和飞书通知步骤已继续执行。"
+          } >> "$GITHUB_STEP_SUMMARY"
